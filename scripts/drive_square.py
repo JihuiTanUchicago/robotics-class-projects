@@ -14,16 +14,18 @@ class DriveSquare(object):
         # setup publisher to the cmd_vel ROS topic
         self.robot_movement_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     def go_straight(self):
+        print("going straight")
         straight_twist = Twist(
             linear = Vector3(0.4, 0, 0),
-            angular = Vector3(0, 0, 0.17)
+            angular = Vector3(0, 0, 0)
         )
         rospy.sleep(1)
         self.robot_movement_pub.publish(straight_twist)
     def turn_right(self):
+        print("going right")
         right_twist = Twist(
             linear = Vector3(0,0,0),
-            angular = Vector3(0,0,0.17)
+            angular = Vector3(0,0,0.81)
         )
         rospy.sleep(1)
         self.robot_movement_pub.publish(right_twist)
