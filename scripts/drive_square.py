@@ -25,16 +25,19 @@ class DriveSquare(object):
         print("going right")
         right_twist = Twist(
             linear = Vector3(0,0,0),
-            angular = Vector3(0,0,0.81)
+            angular = Vector3(0,0,0.83)
         )
         rospy.sleep(1)
         self.robot_movement_pub.publish(right_twist)
-    def run(self):
-        while True:
+    def drive_square(self):
+        while not rospy.is_shutdown():
             self.go_straight()
             rospy.sleep(2)
             self.turn_right()
             rospy.sleep(1)
+        
+    def run(self):
+        self.drive_square()
 if __name__ == '__main__':
     # instantiate the ROS node and run it
     node = DriveSquare()
