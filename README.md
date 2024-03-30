@@ -91,5 +91,5 @@ For `wall_follwer`: 1) The design of a smart algorithm took a lot of trials and 
 - For `wall_follower`: an even smarter algorithm to follow the wall more smoothly. If the enclosed space is too compact, the algorithm now might not be correct.
 
 ## Take-aways
-- Robotics brought physical constraints to the programming environment. Something that works in theory does not mean it works in reality! A lot of values have to be determined(like how fast should the robot move or turn).
+- Robotics brought physical constraints to the programming environment. Something that works in theory does not mean it works in reality! A lot of values have to be tested in order to determine the right values(like how fast should the robot move or turn).
 - With smart use of limited data, robots could be very intelligent. Algorithm designs could also make a simple robot with lidar and wheels to do a lot of things that involve solving complex tasks.
