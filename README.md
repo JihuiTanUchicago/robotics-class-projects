@@ -77,6 +77,10 @@ The principle is that if both estimates for the same corner are less than safe_d
 it is very likely that the robot needs to make a turn in the opposite direction immediately to prevent a collision
 ```
 
+### Videos
+![wall_follower](https://github.com/Intro-Robotics-UChicago-Spring-2024/warmup-project-JihuiTanUchicago/assets/91858809/9bf258dc-d1df-4672-86c1-12e39a680bb5)
+
+
 ## Challenges
 For `drive_in_square`: The real environment is not always ideal, and calculated theoretical values do not always translate perfectly into a reality. I have had to test out various angular velocities to find out the correct value to make the robot turn perfectly 90 degrees.
 
