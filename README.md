@@ -77,7 +77,7 @@ The principle is that if both estimates for the same corner are less than safe_d
 it is very likely that the robot needs to make a turn in the opposite direction immediately to prevent a collision
 ```
 
-### Challenges
+## Challenges
 For `drive_in_square`: The real environment is not always ideal, and calculated theoretical values do not always translate perfectly into a reality. I have had to test out various angular velocities to find out the correct value to make the robot turn perfectly 90 degrees.
 
 For `person_follower`: 1) Not familiar with /scan and lds, so needed to take a little bit of time to search what kind of information could be available and useful from lds; 2) Had to try many different angular velocities to find the ideal value; 3) Had to figure out whether positive angular velocity values would make robot turn left or right; 4) Had to figure out whether the robot should turn right or left based on the information available from lds; 5) Had to figure out what's an ideal safe_distance value.
@@ -85,7 +85,7 @@ For `person_follower`: 1) Not familiar with /scan and lds, so needed to take a l
 For `wall_follwer`: 1) The design of a smart algorithm took a lot of trials and errors, as well as some contemplation about how to best use the data from `lds`. It's hard to cover all the cases.
 
 
-### Future Work
+## Future Work
 - For `drive_in_square`: If I had more time, I would have tried to incorporate LiDAR to help the robot turn perfectly 90 degrees by memorizing the environmental data changes.
 - For `person_follower`: I could leverage open_cv or other computer vision packages to help identify a person in addition to using lidar data.
 - For `wall_follower`: an even smarter algorithm to follow the wall more smoothly. If the enclosed space is too compact, the algorithm now might not be correct.
