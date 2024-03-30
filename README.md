@@ -55,17 +55,15 @@ Command the robot to start following a wall no matter what the shape of the wall
 we split the robot into 4 regions: front, back, left, right
 if the front's distance average is less than the safe distance:
     if the left's distance average < right's distance average:
-        turn right until left and back's distance averages are minimum
-    else if
-        turn left until right and back's distance averages are minimum
-    else
-        go straight safely
-else
+        turn right until left and back's distance averages are minimum, then go straight
+    otherwise
+        turn left until right and back's distance averages are minimum, then go straight
+otherwise
     if the left side is about to hit the wall but the front is farther than safe distance:
         turn right
     else if the right side is about to hit the wall but the front is farther than safe distance:
         turn left
-    else
+    otherwise
         go straight safely
 
 to determine a tricky case where the left or right is about to hit the wall,
