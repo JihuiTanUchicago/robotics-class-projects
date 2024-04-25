@@ -4,7 +4,11 @@ from geometry_msgs.msg import Twist
 
 def stop_robot():
     rospy.init_node('stop_robot', anonymous=True)
-    pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    # subscribe to /scan
+    self.scan_sub = rospy.Subscriber('/scan', LaserScan, self.scan_callback)
+    # publish to /cmd_vel
+    self.twist_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    
     rate = rospy.Rate(10) # 10hz
     stop_twist = Twist()
 
