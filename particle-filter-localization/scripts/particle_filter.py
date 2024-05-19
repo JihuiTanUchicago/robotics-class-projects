@@ -17,6 +17,7 @@ from numpy.random import random_sample
 import math
 
 from random import randint, random, uniform
+from collections import deque
 
 from visualization_msgs.msg import Marker
 from std_msgs.msg import ColorRGBA
@@ -77,7 +78,7 @@ class ParticleFilter:
         self.map = OccupancyGrid()
 
         # the number of particles used in the particle filter
-        self.num_particles = 1000
+        self.num_particles = 5000
 
         # initialize the particle cloud array
         self.particle_cloud = []
@@ -99,7 +100,7 @@ class ParticleFilter:
 
         # publish the estimated robot pose
         self.robot_estimate_pub = rospy.Publisher("estimated_robot_pose", PoseStamped, queue_size=10)
-        
+
         # subscribe to the map server
         rospy.Subscriber(self.map_topic, OccupancyGrid, self.get_map)
         rospy.sleep(1)
@@ -124,8 +125,9 @@ class ParticleFilter:
 
 
     def get_map(self, data):
-
         self.map = data
+        self.pmap = self.get_probability_map()
+        print(self.pmap)
 
 
     def initialize_particle_cloud(self):
@@ -203,10 +205,10 @@ class ParticleFilter:
         
         # Get the current weights
         weights = np.array([particle.w for particle in self.particle_cloud])
-        
+        print(f"weights: {weights}")  
         # Compute the cumulative sum of the weights
         cumulative_weights = np.cumsum(weights)
-        
+        print(f"cumulative_weights: {cumulative_weights}")
         # Generate random thresholds to pick new particles
         thresholds = np.random.uniform(0, cumulative_weights[-1], self.num_particles)
         
@@ -347,26 +349,106 @@ class ParticleFilter:
         print("update_estimated_robot_pose: completed")
 
 
-    def precompute_map(self, data):
+    def get_probability_map(self):
+        width = self.map.info.width
+        height = self.map.info.height
+        
+        #convert 1D to 2D array
+        grid = np.array(self.map.data)
+        grid = grid.astype(np.float64)
+        grid = grid.reshape(height, width)
+        
+        # Replace 100s with infinity
+        grid[grid == 100] = np.inf
 
-        for row in ranges:
-            for column in range(len(ranges[0])):
-                data_point = ranges
+        # Directions for moving to adjacent cells
+        directions = [(-1,0), (1,0), (0,-1), (0,1)]
+
+        # Queue to hold cells to process
+        queue = deque()
+
+        # Initialize the queue with all the free space cells (value 0)
+        for i in range(height):
+            for j in range(width):
+                if grid[i][j] == 0:
+                    queue.append((i,j))
+
+        # Process the queue until empty
+        while queue:
+            x, y = queue.popleft()
+
+            # Explore all adjacent cells
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+
+                # Check if the new positions is within bounds and not unavailable
+                if 0 <= nx < height and 0 <= ny < width and grid[nx][ny] != -1:
+                    # Calculate potential new value
+                    new_value = grid[x][y] + 1
+
+                    # Update the cell if new value is smaller
+                    if new_value < grid[nx][ny]:
+                        grid[nx][ny] = new_value
+                        queue.append((nx,ny))
+        # Treat -1 space as obstacles
+        grid[grid == -1] = 0
+
+        # Convert to probability
+        for i in range(grid.shape[0]):
+            for j in range(grid.shape[1]):
+                grid[i][j] = compute_prob_zero_centered_gaussian(grid[i][j], 0.1)
+        np.set_printoptions(threshold=np.inf, linewidth=200)
+        print(grid)
+        return grid
+        
 
     def update_particle_weights_with_measurement_model(self, data):
         print("update_particles_weights_with_measurement_model: Begin")
+        resolution = self.map.info.resolution
+        origin = self.map.info.origin
+        width = self.map.info.width
+        height = self.map.info.height
         
-        
-        # ------------------------------------------------------------
-        average_weight = 0.25
+        ranges = data.ranges
+        fd = ranges[0]
+        ur = ranges[45]
+        r = ranges[90]
+        br = ranges[135]
+        b = ranges[180]
+        bl = ranges[225]
+        l = ranges[270]
+        ul = ranges[315]
+        directions_data = np.array([fd, ur, r, br, b, bl, l, ul]) / resolution
+        print(f"directions_data: {directions_data}")
         for i in range(len(self.particle_cloud)):
-            if i < 4:
-                self.particle_cloud[i].w = average_weight
-            else:
-                self.particle_cloud[i].w = 0.01
+            q = 1.0 # initialize the likelihood of this particle
+
+            # Get the orientation of the particle
+            quarternion = [
+                            self.particle_cloud[i].pose.orientation.x, 
+                            self.particle_cloud[i].pose.orientation.y, 
+                            self.particle_cloud[i].pose.orientation.z, 
+                            self.particle_cloud[i].pose.orientation.w
+                          ]
+            _,_,yaw = euler_from_quaternion(quarternion)
+
+            for d in range(len(directions_data)):
+                # Calculate the coordinates in the map where the laser hits
+                rad = yaw + 0.25 * d * math.pi
+                hit_x = self.particle_cloud[i].pose.position.x/resolution + directions_data[d] * math.cos(rad)
+                hit_y = self.particle_cloud[i].pose.position.y/resolution + directions_data[d] * math.sin(rad)
+                print(f"hit x: {hit_x}, hit y: {hit_y}")
+                # Convert to map coordinates
+                map_x = int(hit_x - origin.position.x/resolution)
+                map_y = int(hit_y - origin.position.y/resolution)
+                print(f"map_x: {map_x}, map_y: {map_y}")
+                if 0 <= map_x < width and 0 <= map_y < height:
+                    prob = self.pmap[map_x, map_y]
+                    q *= prob
+            self.particle_cloud[i].w = q
+
+
         print("update_particles_weights_with_measurement_model: Completed")
-
-
 
 
     def update_particles_with_motion_model(self, pos_delta_dict):
@@ -377,8 +459,14 @@ class ParticleFilter:
 
         for i in range(len(self.particle_cloud)):
             # linear positions update
-            self.particle_cloud[i].pose.position.x += del_x
-            self.particle_cloud[i].pose.position.y += del_y
+            curr_x = self.particle_cloud[i].pose.position.x
+            curr_y = self.particle_cloud[i].pose.position.y
+            if 0 <= curr_x < self.map.info.width:
+                self.particle_cloud[i].pose.position.x += del_x
+            if 0 <= curr_y < self.map.info.height:
+                self.particle_cloud[i].pose.position.y += del_y
+            print("updata motion: x: {self.particle_cloud[i].pose.position.x}; y: {self.particle_cloud[i].pose.position.y}")
+
             # update rotational value(yaw)
             quarternion = [
                             self.particle_cloud[i].pose.orientation.x, 
