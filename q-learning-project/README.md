@@ -1,6 +1,47 @@
 # q_learning_project
 Names: Todd Tan, Jake Brown
 
+## Final Deliverables
+### GIF
+![MyMovie-ezgif com-optimize](https://github.com/Intro-Robotics-UChicago-Spring-2024/q-learning-project-todd-jake/assets/91858809/6d349017-8d88-4a7d-97e8-320471766e4b)
+
+
+### Robot perception description
+#### Identifying the locations and identities of each of the colored objects & AR tags
+The robot is not aware of the exact location of each colored object or AR tag. What it does is that it is told to target 1 specific object, a specific AR tag, or a colored object, at a time, and try to scan the environment by turning it in place. Given the small environment that the robot is interacting with, the robot could see everything if it finishes a 360-degree turn. Once it finds the targeting colored object or the targeting AR tag, it will turn right or left to center the target. To center a color object or AR tag, refer to the next section for details. Once the target is determined to be centered already, the robot would go straight until the `\scan` tells it to stop.
+
+
+### Robot manipulation and movement
+#### Moving to the right spot in order to pick up a colored object
+The robot would move to the desired color object if the camera sees the corresponding color object and centers it. The way we determine if the colored object is "centered" is by reusing the `line_follower` code, setting up the correct mask for each color object, calculating the average of all the color pixels' x values, and comparing the calculated average to the center of the camera(130). We also manually determined the center of the camera to equal 130 by testing beforehand.
+
+#### Picking up the colored object
+The colored object would be picked up if the camera sees the corresponding color and centers it, and at the same time the `/scan` topic gives a reading of the minimum distance in front of the robot less than 0.18 meters. Then we control the arm to switch from `hoding_state`(arm pointing up) to `grab_state` (arm pointing forward) and set the gripper from `open` to `close`. The centering mechanism makes sure that the robot can 100% grab the desired colored object.
+
+#### Moving to the desired destination (AR tag) with the colored object
+The robot would move to the desired destination with the colored object if the camera sees the corresponding AR tag and centers it. The way we determine if an AR tag is "centered" is by calculating the average of the four corners' x values returned by the `cv2.aruco.ArucoDetector` and comparing the calculated average to the center of the camera(130). We also manually determined the center of the camera to equal 130 by testing beforehand.
+
+#### Putting the colored object back down at the desired destination
+The colored object would be put down at the corresponding AR tag if the camera sees the corresponding AR tag and centers it, and at the same time the `/scan` topic gives a reading of the minimum distance in front of the robot less than 0.48 meter. Then we control the arm to switch from `holding_state`(arm pointing up) to `grab_state`(arm pointing forward) and set the gripper from `close` to `open`. This will drop the object in front of the desired AR tag.
+
+#### Challenges
+Lots of challenges during project 2.
+- Robots not always available/Arms sometimes are down/Bettaries not available. Generally resource constraints
+- Since we have 3 scripts to handle different kinds of logic(`color_handling` for processing color/AR tag, `robot_movement` for robot manipulation and movement, and `main` for signaling the other two what the next target would be), we encountered a lot of troubles in setting up manually defined publishers/subscribers and having the messages received and parsed correctly.
+- Threshold values testing. We have to test a lot of different threshold values for detecting if the robot centers an object, or if the robot is close enough to the wall or a colored object because different robots behave differently.
+- Synchronicity among three scripts
+
+#### Future work
+- It would be nice if we could do reinforcement learning on everything, not just the Q-matrix, but also robot manipulation and movement.
+
+#### Takeaways
+- Knowing how to create manual subscribers and publishers
+- Debugging and dealing with race conditions among three scripts.
+
+### References
+[This guided us on how to code the colorspaces with OpenCV.](https://docs.opencv.org/4.x/df/d9d/tutorial_py_colorspaces.html)
+[This is the color picker we used for determine values of our colors in perception.](https://imagecolorpicker.com/en)
+
 ## Q-learning Algorithm Implementation
 
 ### Objective Description
