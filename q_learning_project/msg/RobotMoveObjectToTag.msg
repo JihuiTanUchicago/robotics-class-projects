@@ -1,0 +1,2 @@
+string robot_object
+int16 tag_id

@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="q_learning_project" type="virtual_reset_world.py" name="virtual_reset_world_1"/>
+
+  <node pkg="q_learning_project" type="q_data.py" name="q_data_1"/>
+
+</launch>
