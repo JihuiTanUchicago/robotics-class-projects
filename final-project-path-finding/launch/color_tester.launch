@@ -1,0 +1,7 @@
+<launch>
+    <!-- run state manager node -->
+    <node name="action_manager" pkg="robocourier" type="action_manager.py" output="screen" />
+
+    <!-- run color tester node -->
+    <node name="robocourier" pkg="robocourier" type="color_tester.py" output="screen" />
+</launch>

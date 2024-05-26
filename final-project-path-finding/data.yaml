@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 7
+names: ['7UP', 'Big', 'Coke', 'EST', 'Fanta', 'Pepsi', 'Sprite']
+
+roboflow:
+  workspace: bruh-ktmpo
+  project: finalproject-3135e
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/bruh-ktmpo/finalproject-3135e/dataset/1
